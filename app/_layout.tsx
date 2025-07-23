@@ -16,6 +16,15 @@ import {
 
 const { width } = Dimensions.get('window');
 
+// Helper function to format INR prices
+const formatINR = (amount: number) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(amount);
+};
+
 // TypeScript interfaces
 interface Product {
   id: number;
@@ -37,12 +46,12 @@ interface RelatedProduct {
   image: string;
 }
 
-// Mock data for the main product
+// Mock data for the main product (converted to INR)
 const mainProduct: Product = {
   id: 1,
   title: 'AirPods Pro Max - Studio Quality',
-  price: 549.99,
-  originalPrice: 699.99,
+  price: 549.99 * 83.5, // Convert USD to INR
+  originalPrice: 699.99 * 83.5,
   image: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=500&h=500&fit=crop&crop=center&auto=format&q=80',
   rating: 4.8,
   reviews: 2847,
@@ -68,30 +77,30 @@ const mainProduct: Product = {
   }
 };
 
-// Mock data for related products
+// Mock data for related products (converted to INR)
 const relatedProducts: RelatedProduct[] = [
   {
     id: 2,
     title: 'AirPods Pro (2nd Gen)',
-    price: 249.99,
+    price: 249.99 * 83.5,
     image: 'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=300&h=300&fit=crop&crop=center&auto=format&q=80'
   },
   {
     id: 3,
     title: 'Sony WH-1000XM5',
-    price: 399.99,
+    price: 399.99 * 83.5,
     image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=300&h=300&fit=crop&crop=center&auto=format&q=80'
   },
   {
     id: 4,
     title: 'Bose QuietComfort 45',
-    price: 329.99,
+    price: 329.99 * 83.5,
     image: 'https://images.unsplash.com/photo-1487215078519-e21cc028cb29?w=300&h=300&fit=crop&crop=center&auto=format&q=80'
   },
   {
     id: 5,
     title: 'Sennheiser Momentum 4',
-    price: 379.99,
+    price: 379.99 * 83.5,
     image: 'https://images.unsplash.com/photo-1524678606370-a47ad25cb82a?w=300&h=300&fit=crop&crop=center&auto=format&q=80'
   },
 ];
@@ -101,7 +110,6 @@ const ProductDetailsApp: React.FC = () => {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [cartItems, setCartItems] = useState<Product[]>([]);
 
-  // Handle add to cart functionality
   const handleAddToCart = (): void => {
     setIsAddedToCart(true);
     setCartItems([...cartItems, mainProduct]);
@@ -121,38 +129,34 @@ const ProductDetailsApp: React.FC = () => {
       ]
     );
 
-    // Reset the confirmation after 2 seconds
     setTimeout(() => {
       setIsAddedToCart(false);
     }, 2000);
   };
 
-  // Navigate to cart (dummy implementation)
   const navigateToCart = (): void => {
+    const total = (cartItems.length + 1) * mainProduct.price;
     Alert.alert(
       'Cart Page',
-      `You have ${cartItems.length + 1} item(s) in your cart.\n\nTotal: $${((cartItems.length + 1) * mainProduct.price).toFixed(2)}`,
+      `You have ${cartItems.length + 1} item(s) in your cart.\n\nTotal: ${formatINR(total)}`,
       [{ text: 'OK' }]
     );
   };
 
-  // Toggle expandable sections
   const toggleSection = (section: string): void => {
     setExpandedSection(expandedSection === section ? null : section);
   };
 
-  // Render related product item
   const renderRelatedProduct: ListRenderItem<RelatedProduct> = ({ item }) => (
     <TouchableOpacity style={styles.relatedProductItem}>
       <Image source={{ uri: item.image }} style={styles.relatedProductImage} />
       <Text style={styles.relatedProductTitle} numberOfLines={2}>
         {item.title}
       </Text>
-      <Text style={styles.relatedProductPrice}>${item.price}</Text>
+      <Text style={styles.relatedProductPrice}>{formatINR(item.price)}</Text>
     </TouchableOpacity>
   );
 
-  // Render star rating
   const renderStars = (rating: number) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -170,17 +174,6 @@ const ProductDetailsApp: React.FC = () => {
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton}>
-            <Text style={styles.backButtonText}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Product Details</Text>
-          <TouchableOpacity style={styles.heartButton}>
-            <Text style={styles.heartButtonText}>♡</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Product Image */}
         <View style={styles.imageContainer}>
           <View style={styles.imageWrapper}>
@@ -188,9 +181,6 @@ const ProductDetailsApp: React.FC = () => {
             <View style={styles.imageBadge}>
               <Text style={styles.badgeText}>NEW</Text>
             </View>
-            <TouchableOpacity style={styles.imageZoomButton}>
-              <Text style={styles.zoomIcon}>🔍</Text>
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -198,24 +188,23 @@ const ProductDetailsApp: React.FC = () => {
         <View style={styles.productInfo}>
           <Text style={styles.productTitle}>{mainProduct.title}</Text>
           
-          {/* Rating and Reviews */}
           {mainProduct.rating && (
             <View style={styles.ratingContainer}>
               <View style={styles.starsContainer}>
                 {renderStars(mainProduct.rating)}
               </View>
               <Text style={styles.ratingText}>
-                {mainProduct.rating} ({mainProduct.reviews} reviews)
+                {mainProduct.rating} ({mainProduct.reviews?.toLocaleString()} reviews)
               </Text>
             </View>
           )}
 
-          {/* Price */}
+          {/* Price in INR */}
           <View style={styles.priceContainer}>
-            <Text style={styles.currentPrice}>${mainProduct.price}</Text>
+            <Text style={styles.currentPrice}>{formatINR(mainProduct.price)}</Text>
             {mainProduct.originalPrice && (
               <>
-                <Text style={styles.originalPrice}>${mainProduct.originalPrice}</Text>
+                <Text style={styles.originalPrice}>{formatINR(mainProduct.originalPrice)}</Text>
                 <View style={styles.discountBadge}>
                   <Text style={styles.discountText}>21% OFF</Text>
                 </View>
@@ -223,77 +212,45 @@ const ProductDetailsApp: React.FC = () => {
             )}
           </View>
 
-          {/* Stock Status */}
           <View style={styles.stockContainer}>
             <View style={styles.stockDot} />
             <Text style={styles.stockText}>In Stock - Ready to Ship</Text>
-            <Text style={styles.shippingText}>FREE shipping on orders over $50</Text>
+            <Text style={styles.shippingText}>FREE shipping on orders over ₹4,000</Text>
           </View>
 
-          {/* Description */}
           {mainProduct.description && (
             <Text style={styles.description}>{mainProduct.description}</Text>
           )}
         </View>
 
-        {/* Expandable Sections */}
-        <View style={styles.expandableSections}>
-          {/* Features Section */}
-          {mainProduct.features && (
-            <>
-              <TouchableOpacity
-                style={styles.sectionHeader}
-                onPress={() => toggleSection('features')}
-              >
-                <Text style={styles.sectionTitle}>Features</Text>
-                <Text style={styles.expandIcon}>
-                  {expandedSection === 'features' ? '−' : '+'}
-                </Text>
-              </TouchableOpacity>
-              {expandedSection === 'features' && (
-                <View style={styles.sectionContent}>
-                  {mainProduct.features.map((feature, index) => (
-                    <View key={index} style={styles.featureItem}>
-                      <Text style={styles.featureBullet}>•</Text>
-                      <Text style={styles.featureText}>{feature}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </>
-          )}
-
-
-
-          {/* Specifications Section */}
-          {mainProduct.specifications && (
-            <>
-              <TouchableOpacity
-                style={styles.sectionHeader}
-                onPress={() => toggleSection('specs')}
-              >
-                <Text style={styles.sectionTitle}>Specifications</Text>
-                <Text style={styles.expandIcon}>
-                  {expandedSection === 'specs' ? '−' : '+'}
-                </Text>
-              </TouchableOpacity>
-              {expandedSection === 'specs' && (
-                <View style={styles.sectionContent}>
-                  {Object.entries(mainProduct.specifications).map(([key, value], index) => (
-                    <View key={index} style={styles.specItem}>
-                      <Text style={styles.specKey}>{key}:</Text>
-                      <Text style={styles.specValue}>{value}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </>
-          )}
-        </View>
+        {/* Features Section */}
+        {mainProduct.features && (
+          <View style={styles.expandableSections}>
+            <TouchableOpacity
+              style={styles.sectionHeader}
+              onPress={() => toggleSection('features')}
+            >
+              <Text style={styles.sectionTitle}>Features</Text>
+              <Text style={styles.expandIcon}>
+                {expandedSection === 'features' ? '−' : '+'}
+              </Text>
+            </TouchableOpacity>
+            {expandedSection === 'features' && (
+              <View style={styles.sectionContent}>
+                {mainProduct.features.map((feature, index) => (
+                  <View key={index} style={styles.featureItem}>
+                    <Text style={styles.featureBullet}>•</Text>
+                    <Text style={styles.featureText}>{feature}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Related Products */}
         <View style={styles.relatedProductsSection}>
-          <Text style={styles.relatedProductsTitle}>Related Products</Text>
+          <Text style={styles.relatedProductsTitle}>You May Also Like</Text>
           <FlatList
             data={relatedProducts}
             renderItem={renderRelatedProduct}
@@ -304,11 +261,10 @@ const ProductDetailsApp: React.FC = () => {
           />
         </View>
 
-        {/* Bottom padding for button */}
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Add to Cart Button (Fixed at bottom) */}
+      {/* Add to Cart Button */}
       <View style={styles.bottomContainer}>
         <TouchableOpacity
           style={[
@@ -319,13 +275,15 @@ const ProductDetailsApp: React.FC = () => {
           activeOpacity={0.8}
         >
           <Text style={styles.addToCartButtonText}>
-            {isAddedToCart ? '✓ Added to Cart!' : 'Add to Cart'}
+            {isAddedToCart ? '✓ Added to Cart!' : `Add to Cart - ${formatINR(mainProduct.price)}`}
           </Text>
         </TouchableOpacity>
         
         {cartItems.length > 0 && (
           <TouchableOpacity style={styles.viewCartButton} onPress={navigateToCart}>
-            <Text style={styles.viewCartButtonText}>View Cart ({cartItems.length})</Text>
+            <Text style={styles.viewCartButtonText}>
+              View Cart ({cartItems.length}) - {formatINR(cartItems.length * mainProduct.price)}
+            </Text>
           </TouchableOpacity>
         )}
       </View>
